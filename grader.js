@@ -41,6 +41,8 @@ var assertFileExists = function(infile) {
 
 var stringify = function(input) {
     theString  = input.toString();
+    console.log("on est dans stringify");
+    console.log(theString);
     return theString;
 }
 
@@ -73,15 +75,18 @@ if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'url to the page index.html', clone(assertFileExists), URL_DEFAULT)
+        .option('-u, --url <url>', 'url to the page index.html', console.log("on est dans url"), URL_DEFAULT)
         .parse(process.argv);
     if (program.url) {
 	console.log("pipo")
-        restler.get(url).on('complete', stringify);
+        restler.get(program.url).on('complete', console.log("done"));
+        console.log("done");
         checkJson = checkHtmlFile(theString, program.checks);
     }
-
+    if (program.fie) {
+    console.log("passage dans le std")
     checkJson = checkHtmlFile(program.file, program.checks);
+    }
 
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
