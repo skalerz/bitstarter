@@ -28,23 +28,15 @@ var restler = require('restler');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
 var URL_DEFAULT = "http://yahoo.fr/index.html";
-var theString ="";
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
     if(!fs.existsSync(instr)) {
-        console.log("%s does not exist. Exiting.", instr);
-        process.exit(1); // http://nodejs.org/api/process.html#process_process_exit_code
+	console.log("%s does not exist. Exiting.", instr);
+	process.exit(1); // http://nodejs.org/api/process.html#process_process_exit_code
     }
     return instr;
 };
-
-var stringify = function(input) {
-    theString  = input.toString();
-    console.log("on est dans stringify");
-    console.log(theString);
-    return theString;
-}
 
 var cheerioHtmlFile = function(htmlfile) {
     return cheerio.load(fs.readFileSync(htmlfile));
@@ -59,8 +51,8 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     var checks = loadChecks(checksfile).sort();
     var out = {};
     for(var ii in checks) {
-        var present = $(checks[ii]).length > 0;
-        out[checks[ii]] = present;
+	var present = $(checks[ii]).length > 0;
+	out[checks[ii]] = present;
     }
     return out;
 };
@@ -73,23 +65,34 @@ var clone = function(fn) {
 
 if(require.main == module) {
     program
-        .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
-        .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'url to the page index.html', console.log("on est dans url"), URL_DEFAULT)
-        .parse(process.argv);
+	.option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
+	.option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists))
+	.option('-u, --url <url>', 'url to the page index.html')
+	.parse(process.argv);
+
     if (program.url) {
-	console.log("pipo")
-        restler.get(program.url).on('complete', console.log("done"));
-        console.log("done");
-        checkJson = checkHtmlFile(theString, program.checks);
-    }
-    if (program.fie) {
-    console.log("passage dans le std")
-    checkJson = checkHtmlFile(program.file, program.checks);
+//	console.log("pipo");
+	restler.get(program.url).on('complete', function(result) {
+//console.log("lancement du callback");
+fs.writeFile('index.html.tmp', result, function (err) {
+  if (err) throw err;
+//  console.log('It\'s saved!');
+  checkJson = checkHtmlFile('index.html.tmp', program.checks);
+  var outJson = JSON.stringify(checkJson, null, 4);
+  console.log(outJson);
+});
+
+});
     }
 
+    if (program.file) {
+//    console.log("passage dans le std");
+    checkJson = checkHtmlFile(program.file, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
+    }
+
+
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }

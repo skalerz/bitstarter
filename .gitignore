@@ -2,3 +2,4 @@ node_modules
 submit1.txt
 submit2.txt
 submit3.txt
+*.tmp
